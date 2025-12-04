@@ -436,9 +436,25 @@ class AnswerQuestionView(APIView):
         user = request.user
 
         question_id, project_id, text, question_type = request.data.get("question_id"), request.data.get("project_id"), request.data.get("text"), request.data.get("question_type")
+        
+        project = Project.objects.get(id = project_id)
+
+        if not project:
+            return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
+
         next_question = None
+        answer = None
+
         if question_type == "predefined":
             question = Question.objects.get(id = question_id)
+
+            answer = Answer.objects.create(
+                user = user,
+                question = question,
+                project = project,
+                text = text
+            )
+
             if question.next_question:
                 next_question = {
                     **QuestionSerializer(question.next_question).data,
@@ -474,39 +490,25 @@ class AnswerQuestionView(APIView):
                         **AI_QuestionSerializer(AI_Question.objects.filter(project__id=project_id).order_by("question_no").first()).data,
                         "question_type": "ai"
                     }
+        
         else:
             question = AI_Question.objects.get(id = question_id)
+
+            answer = AI_Answer.objects.create(
+                user = user,
+                ai_question = question,
+                text = text
+            )
+
             if question.next_question:
                 next_question = {
                     **AI_QuestionSerializer(question.next_question).data,
                     "question_type": "ai"
                 }
 
-            if not question:
-                return Response({"detail": "Question is not present"}, status=status.HTTP_400_BAD_REQUEST)
-            
-            project = Project.objects.get(id = project_id)
-
-            if not project:
-                return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
-
-            if question_type == "predefined":
-                answer = Answer.objects.create(
-                    user = user,
-                    question = question,
-                    project = project,
-                    text = text
-                )
-            else:
-                answer = AI_Answer.objects.create(
-                    user = user,
-                    ai_question = question,
-                    text = text
-                )
-
-            return Response({
-                "detail": "Answer Created successfully",
-                "data": AnswerSerializer(answer).data,
-                "next_question": next_question
-            }, status = status.HTTP_201_CREATED)
+        return Response({
+            "detail": "Answer Created successfully",
+            "data": AnswerSerializer(answer).data,
+            "next_question": next_question
+        }, status = status.HTTP_201_CREATED)
 

@@ -1,7 +1,7 @@
 from .call_model import call_anthropic_model
-
+from core.settings import CLAUDE_API_ENV
 class AnthropicPrompt:
-    def __init__(self, api_key: str, model: str = "claude-2"):
+    def __init__(self, api_key: str, model: str = "claude-opus-4-20250514"):
         self.api_key = api_key
         self.model = model
 
@@ -94,9 +94,13 @@ class AnthropicPrompt:
         return response
     
     def ask_questions(self, all_questions: list) -> str:
+        print("All questions: ", all_questions)
         prompt = self.get_question_prompt(all_questions)
+        print("AI question prompt: ", prompt)
         response = self.get_model_response(prompt)
+        print("Claude Response: ", response)
         questions = response.strip().split('\n')
+        print("Questions: ", questions)
         return questions
     
     def generate_requirements(self, all_questions: list) -> str:
@@ -104,4 +108,4 @@ class AnthropicPrompt:
         response = self.get_model_response(prompt)
         return response
         
-anthropic_prompt = AnthropicPrompt(api_key="your_anthropic_api_key")
+anthropic_prompt = AnthropicPrompt(api_key=CLAUDE_API_ENV)

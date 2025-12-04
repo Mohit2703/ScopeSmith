@@ -1,6 +1,6 @@
 import anthropic
 
-def call_anthropic_model(api_key: str, prompt: str, model: str = "claude-2") -> str:
+def call_anthropic_model(api_key: str, prompt: str, model: str = "claude-opus-4-20250514") -> str:
     """
     Calls the Anthropic AI model with the given prompt and returns the response.
 
@@ -15,14 +15,14 @@ def call_anthropic_model(api_key: str, prompt: str, model: str = "claude-2") -> 
     client = anthropic.Anthropic(api_key=api_key)
 
     message = client.messages.create(
-        model="claude-sonnet-4-5",
+        model=model,
         max_tokens=1000,
         messages=[
             {
                 "role": "user",
-                "content": "What should I search for to find the latest developments in renewable energy?"
+                "content": prompt
             }
         ]
     )
     
-    return message.content
+    return message.content[0].text

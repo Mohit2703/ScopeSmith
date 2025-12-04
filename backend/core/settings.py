@@ -167,6 +167,8 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
+CLAUDE_API_ENV = os.getenv("CLAUDE_API_KEY")
+
 # AUTHENTICATION_BACKENDS = [
 #     "users.backends.EmailBackend",  # your custom backend
 #     "django.contrib.auth.backends.ModelBackend",  # fallback default
