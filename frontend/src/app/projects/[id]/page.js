@@ -85,10 +85,11 @@ export default function ProjectDashboardPage() {
             Great! Your AI-generated requirements report is ready.
           </p>
           <button
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700"
-          >
-            View Requirements Report
-          </button>
+          onClick={() => router.push(`/projects/${projectId}/report`)}
+          className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700"
+        >
+          View Requirements Report
+        </button>
         </div>
       )}
     </div>
