@@ -1,88 +1,98 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import AuthGuard from '@/components/AuthGuard';
+import { Button } from '@/components/ui/Button';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
 import api from '@/lib/api';
 
-export default function ProjectReportPage() {
-  const { id } = useParams();
-  const projectId = Number(id);
-  const router = useRouter();
-
+export default function ReportPage() {
+  const params = useParams();
   const [reportHtml, setReportHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!projectId) return;
+    if (params.id) {
+      fetchReport(params.id);
+    }
+  }, [params.id]);
 
-    const fetchReport = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const token = localStorage.getItem('auth_token');
-        const res = await api.get(`/projects/generate_report/${projectId}/`, {}, token);
-        // API shape: { detail: "...", data: { id, project, report, ... } }
-        setReportHtml(res.data.report || '');
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load report. Ensure all questions are answered.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReport();
-  }, [projectId]);
+  const fetchReport = async (projectId) => {
+    try {
+      const response = await api.get(`/projects/generate_report/${projectId}/`);
+      // response: { detail, data: { report: "<HTML string>" } }
+      setReportHtml(response.data?.report || '');
+    } catch (err) {
+      console.error('Failed to fetch report:', err);
+      setError('Failed to generate report. Please ensure all questions are answered.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Generating your report...</p>
+      <AuthGuard>
+        <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent mx-auto mb-4"></div>
+            <p className="text-zinc-400">Generating your report...</p>
+          </div>
         </div>
-      </div>
+      </AuthGuard>
     );
   }
 
-  if (error || !reportHtml) {
+  if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <p className="text-red-600 mb-4">{error || 'No report available yet.'}</p>
-        <button
-          onClick={() => router.push(`/projects/${projectId}`)}
-          className="text-indigo-600 hover:underline"
-        >
-          Back to Project
-        </button>
-      </div>
+      <AuthGuard>
+        <div className="min-h-screen bg-zinc-950 p-8 flex items-center justify-center">
+          <div className="max-w-md w-full">
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+            <Link href={`/projects/${params.id}`}>
+              <Button variant="secondary" className="w-full">Back to Project</Button>
+            </Link>
+          </div>
+        </div>
+      </AuthGuard>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-50">
-      <div className="max-w-5xl mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">AI Requirements Report</h1>
-          <button
-            onClick={() => router.push(`/projects/${projectId}`)}
-            className="text-sm text-slate-300 hover:text-white"
-          >
-            ← Back to Project
-          </button>
-        </div>
-
-        {/* Non-downloadable feel: just on-screen HTML */}
-        <div className="bg-white text-slate-900 rounded-xl shadow-2xl overflow-hidden">
-          <div className="p-6 md:p-10 prose max-w-none">
-            {/* reportHtml already contains styled HTML/Markdown hybrid */}
-            <div
-              dangerouslySetInnerHTML={{ __html: reportHtml }}
-            />
+    <AuthGuard>
+      <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col">
+        {/* Top Bar */}
+        <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
+          <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-4">
+              <Link href={`/projects/${params.id}`}>
+                <Button variant="ghost" className="text-zinc-400 hover:text-white">
+                  ← Back
+                </Button>
+              </Link>
+              <span className="font-semibold">Project Report</span>
+            </div>
+            {/* No download button as per requirements */}
           </div>
-        </div>
+        </header>
+
+        {/* Report Content */}
+        <main className="flex-1 overflow-auto py-8">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div className="rounded-xl bg-white text-zinc-900 shadow-2xl overflow-hidden">
+              <div
+                className="prose prose-slate max-w-none p-8 sm:p-12"
+                dangerouslySetInnerHTML={{ __html: reportHtml }}
+              />
+            </div>
+          </div>
+        </main>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

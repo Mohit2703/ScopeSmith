@@ -1,231 +1,206 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { AppLayout } from '@/components/layout/AppLayout';
+import AuthGuard from '@/components/AuthGuard';
+import { Button } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Textarea';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
 import api from '@/lib/api';
 
-export default function QuestionAnsweringPage() {
-  const { id } = useParams();
-  const projectId = Number(id);
+export default function QuestionPage() {
+  const params = useParams();
   const router = useRouter();
-
-  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [question, setQuestion] = useState(null);
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [questionNumber, setQuestionNumber] = useState(1);
 
-  // Load next question on mount
   useEffect(() => {
-    loadNextQuestion();
-  }, [projectId]);
+    if (params.id) {
+      fetchNextQuestion(params.id);
+    }
+  }, [params.id]);
 
-  const loadNextQuestion = async () => {
+  const fetchNextQuestion = async (projectId) => {
+    setLoading(true);
+    setError('');
     try {
-      setLoading(true);
-      setError('');
-      const token = localStorage.getItem('auth_token');
-      
-      const response = await api.get(
-        `/projects/get_next_question/${projectId}/`,
-        {},
-        token
-      );
+      const response = await api.get(`/projects/get_next_question/${projectId}/`);
 
-      if (response.detail === "All questions have been answered.") {
-        // All questions answered - redirect to project dashboard
-        router.push(`/projects/${projectId}`);
-        return;
+      // If response has 'data' property, it's a question object
+      if (response.data) {
+        setQuestion(response.data);
+        setAnswer('');
+      } else {
+        // All questions answered
+        setQuestion(null);
       }
-
-      setCurrentQuestion(response.data);
-      setAnswer('');
     } catch (err) {
-      console.error(err);
-      setError(err?.detail || 'Failed to load question');
+      console.error('Failed to fetch question:', err);
+      // Check if error message indicates all questions answered
+      if (err.message && err.message.includes('All questions have been answered')) {
+        setQuestion(null);
+      } else {
+        setError(err.message || 'Failed to load question.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!answer.trim()) {
-      setError('Please provide an answer');
-      return;
-    }
+  const handleSubmit = async (exit = false) => {
+    if (!question || !answer.trim()) return;
+
+    setSubmitting(true);
+    setError('');
 
     try {
-      setSubmitting(true);
-      setError('');
-      const token = localStorage.getItem('auth_token');
+      // POST to answer_question endpoint
+      const response = await api.post('/projects/answer_question/', {
+        question_id: question.id,
+        project_id: parseInt(params.id),
+        text: answer,
+        question_type: question.question_type
+      });
 
-      const payload = {
-        question_id: currentQuestion.id,
-        project_id: projectId,
-        text: answer.trim(),
-        question_type: currentQuestion.question_type || 'predefined'
-      };
-
-      const response = await api.post(
-        '/projects/answer_question/',
-        payload,
-        token
-      );
-
-      // Check if there's a next question
-      if (response.next_question) {
-        setCurrentQuestion(response.next_question);
-        setAnswer('');
-        setQuestionNumber(prev => prev + 1);
+      if (exit) {
+        router.push(`/projects/${params.id}`);
       } else {
-        // No more questions - redirect to project dashboard
-        router.push(`/projects/${projectId}`);
+        // Check if there's a next question in the response
+        if (response.next_question) {
+          setQuestion(response.next_question);
+          setAnswer('');
+        } else {
+          // No more questions
+          setQuestion(null);
+        }
       }
     } catch (err) {
-      console.error(err);
-      setError(err?.detail || 'Failed to submit answer');
+      console.error('Failed to submit answer:', err);
+      setError(err.message || 'Failed to save answer. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleSkip = async () => {
-    // For now, just load next question
-    // You can implement skip logic on backend if needed
-    await loadNextQuestion();
-    setQuestionNumber(prev => prev + 1);
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading next question...</p>
-        </div>
-      </div>
+      <AuthGuard>
+        <AppLayout>
+          <div className="mx-auto max-w-3xl space-y-6">
+            <div className="h-8 w-1/3 rounded bg-muted animate-pulse"></div>
+            <div className="h-64 rounded-lg bg-muted animate-pulse"></div>
+          </div>
+        </AppLayout>
+      </AuthGuard>
     );
   }
 
-  if (!currentQuestion) {
+  if (!question && !loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No more questions available.</p>
-          <button
-            onClick={() => router.push(`/projects/${projectId}`)}
-            className="mt-4 text-indigo-600 hover:underline"
-          >
-            Back to Project
-          </button>
-        </div>
-      </div>
+      <AuthGuard>
+        <AppLayout>
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-6 rounded-full bg-green-100 p-4 inline-flex dark:bg-green-900/20">
+              <svg className="h-8 w-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold">All questions answered!</h2>
+            <p className="mt-2 text-muted-foreground">You have completed the requirement gathering for this project.</p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Link href={`/projects/${params.id}`}>
+                <Button variant="outline">Back to Project</Button>
+              </Link>
+              <Link href={`/projects/${params.id}/report`}>
+                <Button>View Report</Button>
+              </Link>
+            </div>
+          </div>
+        </AppLayout>
+      </AuthGuard>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
-        {/* Progress indicator */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Question {questionNumber}
-            </span>
-            <span className="text-xs text-gray-500">
-              {currentQuestion.question_type === 'ai' ? '🤖 AI Generated' : '📋 Standard'}
-            </span>
+    <AuthGuard>
+      <AppLayout>
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-6">
+            <Link href={`/projects/${params.id}`} className="text-sm text-muted-foreground hover:text-foreground">
+              ← Back to Project
+            </Link>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(questionNumber * 10, 100)}%` }}
-            ></div>
-          </div>
-        </div>
 
-        {/* Question Card */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            {currentQuestion.text}
-          </h2>
-          
-          {currentQuestion.description && (
-            <p className="text-gray-600 text-sm mb-4">
-              {currentQuestion.description}
-            </p>
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="answer" className="block text-sm font-medium text-gray-700 mb-2">
-                Your Answer
-              </label>
-              <textarea
-                id="answer"
-                rows={8}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                placeholder="Type your answer here..."
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <Badge variant={question.question_type === 'ai' ? 'secondary' : 'default'}>
+                  {question.question_type === 'ai' ? 'AI Generated' : 'Standard'}
+                </Badge>
+                {question.next_question && (
+                  <span className="text-sm text-muted-foreground">
+                    More questions ahead
+                  </span>
+                )}
+              </div>
+              <CardTitle className="mt-4 text-xl leading-relaxed">
+                {question.text}
+              </CardTitle>
+              {question.description && (
+                <CardDescription className="mt-2 text-base">
+                  {question.description}
+                </CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <Textarea
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
-                disabled={submitting}
+                placeholder="Type your answer here..."
+                className="min-h-[200px] text-base"
+                autoFocus
               />
-              <p className="mt-2 text-sm text-gray-500">
+              <div className="mt-2 flex justify-end text-xs text-muted-foreground">
                 {answer.length} characters
-              </p>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
               </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
-              <button
-                type="submit"
+            </CardContent>
+            <CardFooter className="flex justify-between border-t bg-muted/20 p-6">
+              <Button
+                variant="ghost"
+                onClick={() => handleSubmit(true)}
                 disabled={submitting || !answer.trim()}
-                className="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {submitting ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Submitting...
-                  </span>
-                ) : (
-                  'Submit & Continue'
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => router.push(`/projects/${projectId}`)}
-                className="px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
               >
                 Save & Exit
-              </button>
-            </div>
-          </form>
-        </div>
+              </Button>
+              <Button
+                onClick={() => handleSubmit(false)}
+                isLoading={submitting}
+                disabled={!answer.trim()}
+              >
+                Submit & Continue
+              </Button>
+            </CardFooter>
+          </Card>
 
-        {/* Helper Tips */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">💡 Tips for better answers:</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Be as specific and detailed as possible</li>
-            <li>• Include examples if applicable</li>
-            <li>• Mention any technical preferences or constraints</li>
-            <li>• You can always come back and refine your answers later</li>
-          </ul>
+          <div className="mt-8 rounded-lg bg-blue-50 p-4 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
+            <h4 className="font-semibold mb-1">💡 Tip for better results</h4>
+            <p>Be as specific as possible. The more details you provide, the better the AI can generate accurate requirements.</p>
+          </div>
         </div>
-      </div>
-    </div>
+      </AppLayout>
+    </AuthGuard>
   );
 }

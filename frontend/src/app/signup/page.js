@@ -1,67 +1,122 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { AuthLayout } from '@/components/layout/AuthLayout';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
 
 export default function SignupPage() {
   const { signup } = useAuth();
-  const router = useRouter();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    try {
-      await signup(form);
-      router.push('/dashboard');
-    } catch (err) {
-      setError(err?.response?.data?.detail || err.message || 'Signup failed');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
+      return;
     }
+
+    setIsLoading(true);
+
+    const result = await signup(formData.username, formData.email, formData.password);
+
+    if (!result.success) {
+      setError(result.error);
+      setIsLoading(false);
+    }
+    // If success, AuthContext handles redirect
   };
 
   return (
-    <div className="w-full max-w-md mx-auto mt-10">
-      <h2 className="text-xl font-bold mb-4">Sign Up</h2>
-      {error && <div className="text-red-600">{error}</div>}
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
+    <AuthLayout
+      title="Create an account"
+      description="Get started with ScopeSmith today"
+    >
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <Input
+          label="Username"
+          id="username"
+          name="username"
           type="text"
-          name="name"
-          value={form.name}
-          placeholder="Name"
+          autoComplete="username"
           required
-          className="w-full border p-2 rounded"
+          value={formData.username}
           onChange={handleChange}
         />
-        <input
-          type="email"
+
+        <Input
+          label="Email address"
+          id="email"
           name="email"
-          value={form.email}
-          placeholder="Email"
+          type="email"
+          autoComplete="email"
           required
-          className="w-full border p-2 rounded"
+          value={formData.email}
           onChange={handleChange}
         />
-        <input
-          type="password"
+
+        <Input
+          label="Password"
+          id="password"
           name="password"
-          value={form.password}
-          placeholder="Password"
+          type="password"
+          autoComplete="new-password"
           required
-          minLength={8}
-          className="w-full border p-2 rounded"
+          value={formData.password}
           onChange={handleChange}
         />
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white py-2 rounded">
-          Sign Up
-        </button>
+
+        <Input
+          label="Confirm Password"
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          required
+          value={formData.confirmPassword}
+          onChange={handleChange}
+        />
+
+        <div>
+          <Button
+            type="submit"
+            className="w-full"
+            isLoading={isLoading}
+          >
+            Sign up
+          </Button>
+        </div>
+
+        <div className="text-center text-sm">
+          <span className="text-muted-foreground">Already have an account? </span>
+          <Link href="/login" className="font-medium text-primary hover:text-primary/90">
+            Sign in
+          </Link>
+        </div>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

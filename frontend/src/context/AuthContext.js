@@ -1,8 +1,8 @@
 'use client';
+
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-// import api from '@/app/lib/api';
-import api from '@/lib/api';
+import { useRouter, usePathname } from 'next/navigation';
+import api from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -10,40 +10,59 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      api.get('/auth/me/', {}, token)
-        .then(setUser)
-        .catch(() => {
-          setUser(null);
-          localStorage.removeItem('auth_token');
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    checkUser();
   }, []);
 
-  const login = async (email, password) => {
-    const username = email.split('@')[0]; // Derive username from email
-    const result = await api.post('/auth/login/', { username, password });
-    localStorage.setItem('auth_token', result.token);
-    setUser(result.user);
-    return result;
-  };
-
-  const signup = async ({ name, email, password }) => {
-    const result = await api.post('/auth/signup/', { name, email, password });
-    localStorage.setItem('auth_token', result.token);
-    setUser(result.user);
-    return result;
-  };
-
-  const logout = async () => {
+  const checkUser = async () => {
     const token = localStorage.getItem('auth_token');
-    await api.post('/auth/logout/', {}, token);
+    if (token) {
+      try {
+        // Assuming there is an endpoint to get current user details
+        // If not, we might just trust the token exists for now, 
+        // but the requirements mentioned /api/auth/me/
+        const userData = await api.get('/auth/me/', {}, token);
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+        localStorage.removeItem('auth_token');
+        setUser(null);
+      }
+    }
+    setLoading(false);
+  };
+
+  const login = async (username, password) => {
+    try {
+      const data = await api.post('/auth/login/', { username, password });
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+        await checkUser();
+        router.push('/dashboard');
+        return { success: true };
+      }
+    } catch (error) {
+      return { success: false, error: error.detail || 'Login failed' };
+    }
+  };
+
+  const signup = async (username, email, password) => {
+    try {
+      const data = await api.post('/auth/signup/', { username, email, password });
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+        await checkUser();
+        router.push('/dashboard');
+        return { success: true };
+      }
+    } catch (error) {
+      return { success: false, error: error.detail || 'Signup failed' };
+    }
+  };
+
+  const logout = () => {
     localStorage.removeItem('auth_token');
     setUser(null);
     router.push('/login');
