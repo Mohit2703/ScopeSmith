@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProjectType, Project, Question, Answer, AI_Answer, AI_Question
+from .models import ProjectType, Project, Question, Answer, AI_Answer, AI_Question, Project_Report
 
 class ProjectTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,3 +30,8 @@ class AI_AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = AI_Answer
         fields = ["id", "user", "ai_question", "text", "created_at", "updated_at"]
+
+class Project_ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project_Report
+        fields = ["id", "project", "report", "created_at", "updated_at"]

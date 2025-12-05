@@ -86,3 +86,9 @@ class AI_Answer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+class Project_Report(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    report = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

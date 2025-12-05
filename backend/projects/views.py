@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
-from .models import ProjectType, Project, Question, Answer, AI_Question, AI_Answer
-from .serializers import QuestionSerializer, AnswerSerializer, ProjectTypeSerializer, ProjectSerializer, AI_QuestionSerializer, AI_AnswerSerializer
+from .models import ProjectType, Project, Question, Answer, AI_Question, AI_Answer, Project_Report
+from .serializers import QuestionSerializer, AnswerSerializer, ProjectTypeSerializer, ProjectSerializer, AI_QuestionSerializer, AI_AnswerSerializer, Project_ReportSerializer
 from django.db.models import Q
 from .anthropic.prompt import anthropic_prompt
 
@@ -136,8 +136,8 @@ class GetOneProjectView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # if user.role != 'admin' or user != project.user:
-        #     return Response({"detail": "User is not authorized to view this project."}, status=status.HTTP_400_BAD_REQUEST)
+        if user.role != 'admin' or user != project.user:
+            return Response({"detail": "User is not authorized to view this project."}, status=status.HTTP_400_BAD_REQUEST)
         project_data = ProjectSerializer(project).data
         return Response({
             "detail": "Project detail retreived",
@@ -355,8 +355,8 @@ class GetNextQuestionView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # if user.role != "admin" or user != project.user:
-        #     return Response({"detail": "User is not authorized to view questions for this project."}, status=status.HTTP_400_BAD_REQUEST)
+        if user.role != "admin" or user != project.user:
+            return Response({"detail": "User is not authorized to view questions for this project."}, status=status.HTTP_400_BAD_REQUEST)
         
         answered_question_ids = Answer.objects.filter(project=project).values_list('question_id', flat=True)
         
@@ -375,7 +375,7 @@ class GetNextQuestionView(APIView):
                 }
             }, status=status.HTTP_200_OK)
         
-        ai_answered_question_ids = AI_Answer.objects.filter(ai_question__project=project).values_list('id', flat=True)
+        ai_answered_question_ids = AI_Answer.objects.filter(ai_question__project=project).values_list('ai_question__id', flat=True)
         
         print("AI answered questions: ", ai_answered_question_ids)
         next_ai_question = AI_Question.objects.filter(
@@ -406,12 +406,20 @@ class GetNextQuestionView(APIView):
                 "question_asked_by": "predefined"  # Assuming all these questions were asked by the user
             })
 
-        ai_questions = anthropic_prompt.ask_questions(all_questions)
+        project_info = {
+            "project_name": project.name,
+            "project_description": project.description,
+            "project_type": project.project_type.name,
+            "project_type_description": project.project_type.description
+        }
+
+        ai_questions = anthropic_prompt.ask_questions(all_questions, project_info)
 
         if not ai_questions:
             return Response({"detail": "All questions have been answered."}, status=status.HTTP_200_OK)
         
         ques_no = 1
+        previous_ai_question=None
         for ai_question_text in ai_questions:
             ai_question = AI_Question.objects.create(
                 project=project,
@@ -419,6 +427,10 @@ class GetNextQuestionView(APIView):
                 question_no = ques_no
             )
             ques_no += 1
+            if previous_ai_question:
+                previous_ai_question.next_question = ai_question
+                previous_ai_question.save()
+            previous_ai_question = ai_question
         
         ai_ques = AI_Question.objects.filter(project=project).order_by("question_no").first()
         serializer = AI_QuestionSerializer(ai_ques)
@@ -475,7 +487,14 @@ class AnswerQuestionView(APIView):
                         "answer_text": ans.text,
                         "question_asked_by": "predefined"  # Assuming all these questions were asked by the user
                     })
-                ai_questions = anthropic_prompt.ask_questions(all_questions)
+
+                project_info = {
+                    "project_name": project.name,
+                    "project_description": project.description,
+                    "project_type": project.project_type.name,
+                    "project_type_description": project.project_type.description
+                }
+                ai_questions = anthropic_prompt.ask_questions(all_questions, project_info)
 
                 if ai_questions:
                     previous_ai_question = None
@@ -520,4 +539,66 @@ class AnswerQuestionView(APIView):
             "data": answer_data,
             "next_question": next_question
         }, status = status.HTTP_201_CREATED)
+
+
+class GenerateReportView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request, project_id):
+        user = request.user
+
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
+
+        print("project: ", project)
+        project_report = Project_Report.objects.filter(project=project).first()
+
+        if project_report:
+            return Response({
+                "detail": "Project Report",
+                "data": Project_ReportSerializer(project_report).data
+            }, status = status.HTTP_200_OK)
+        
+        all_questions = []
+
+        answers = Answer.objects.filter(project=project)
+        for answer in answers:
+            all_questions.append({
+                "id": answer.question.id,
+                "question_text": answer.question.text,
+                "answer_text": answer.text,
+                "question_asked_by": "predefined"  # Assuming all these questions were asked by the user
+            })
+        
+        ai_answers = AI_Answer.objects.filter(ai_question__project=project)
+        for answer in ai_answers:
+            all_questions.append({
+                "id": answer.ai_question.question_no,
+                "question_text": answer.ai_question.text,
+                "answer_text": answer.text,
+                "question_asked_by": "ai"  # Assuming all these questions were asked by the user
+            })
+
+        project_info = {
+            "project_name": project.name,
+            "project_description": project.description,
+            "project_type": project.project_type.name,
+            "project_type_description": project.project_type.description
+        }
+
+        generated_report = anthropic_prompt.generate_requirements(all_questions, project_info)
+
+        print("Generated Report: ", generated_report)
+
+        project_report = Project_Report.objects.create(project = project, report = generated_report)
+
+        return Response({
+            "detail": "Project Report Generated",
+            "data": Project_ReportSerializer(project_report).data
+        }, status = status.HTTP_201_CREATED)
+        
+
 
