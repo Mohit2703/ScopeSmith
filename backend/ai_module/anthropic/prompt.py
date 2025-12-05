@@ -96,7 +96,7 @@ class AnthropicPrompt:
     def ask_questions(self, all_questions: list) -> str:
         prompt = self.get_question_prompt(all_questions)
         response = self.get_model_response(prompt)
-        questions = response.strip().split('\n')
+        questions = response.strip().split('\n\n')
         return questions
     
     def generate_requirements(self, all_questions: list) -> str:

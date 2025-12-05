@@ -136,8 +136,8 @@ class GetOneProjectView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if user.role != 'admin' or user != project.user:
-            return Response({"detail": "User is not authorized to view this project."}, status=status.HTTP_400_BAD_REQUEST)
+        # if user.role != 'admin' or user != project.user:
+        #     return Response({"detail": "User is not authorized to view this project."}, status=status.HTTP_400_BAD_REQUEST)
         project_data = ProjectSerializer(project).data
         return Response({
             "detail": "Project detail retreived",
@@ -355,8 +355,8 @@ class GetNextQuestionView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if user.role != "admin" or user != project.user:
-            return Response({"detail": "User is not authorized to view questions for this project."}, status=status.HTTP_400_BAD_REQUEST)
+        # if user.role != "admin" or user != project.user:
+        #     return Response({"detail": "User is not authorized to view questions for this project."}, status=status.HTTP_400_BAD_REQUEST)
         
         answered_question_ids = Answer.objects.filter(project=project).values_list('question_id', flat=True)
         
@@ -375,11 +375,13 @@ class GetNextQuestionView(APIView):
                 }
             }, status=status.HTTP_200_OK)
         
-        ai_answered_question_ids = AI_Question.objects.filter(project=project).values_list('id', flat=True)
+        ai_answered_question_ids = AI_Answer.objects.filter(ai_question__project=project).values_list('id', flat=True)
+        
+        print("AI answered questions: ", ai_answered_question_ids)
         next_ai_question = AI_Question.objects.filter(
             project=project
         ).exclude(id__in=ai_answered_question_ids).order_by("question_no").first()
-
+        print("Next AI Question: ", next_ai_question)
         if next_ai_question:
             serializer = AI_QuestionSerializer(next_ai_question)
             return Response({
@@ -444,6 +446,7 @@ class AnswerQuestionView(APIView):
 
         next_question = None
         answer = None
+        answer_data = None
 
         if question_type == "predefined":
             question = Question.objects.get(id = question_id)
@@ -455,6 +458,8 @@ class AnswerQuestionView(APIView):
                 text = text
             )
 
+            answer_data = AnswerSerializer(answer).data
+
             if question.next_question:
                 next_question = {
                     **QuestionSerializer(question.next_question).data,
@@ -463,11 +468,11 @@ class AnswerQuestionView(APIView):
             else:
                 all_questions = []
                 answers = Answer.objects.filter(project=project)
-                for answer in answers:
+                for ans in answers:
                     all_questions.append({
-                        "id": answer.question.id,
-                        "question_text": answer.question.text,
-                        "answer_text": answer.text,
+                        "id": ans.question.id,
+                        "question_text": ans.question.text,
+                        "answer_text": ans.text,
                         "question_asked_by": "predefined"  # Assuming all these questions were asked by the user
                     })
                 ai_questions = anthropic_prompt.ask_questions(all_questions)
@@ -494,11 +499,15 @@ class AnswerQuestionView(APIView):
         else:
             question = AI_Question.objects.get(id = question_id)
 
+            print("Question: ", question)
+
             answer = AI_Answer.objects.create(
                 user = user,
                 ai_question = question,
                 text = text
             )
+
+            answer_data = AI_AnswerSerializer(answer).data
 
             if question.next_question:
                 next_question = {
@@ -508,7 +517,7 @@ class AnswerQuestionView(APIView):
 
         return Response({
             "detail": "Answer Created successfully",
-            "data": AnswerSerializer(answer).data,
+            "data": answer_data,
             "next_question": next_question
         }, status = status.HTTP_201_CREATED)
 
