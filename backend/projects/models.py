@@ -5,6 +5,7 @@ from users.models import User
 class ProjectType(models.Model):
     name = models.CharField(max_length=250)
     description = models.TextField(blank=True, default="")
+    icon = models.CharField(max_length=10, default="📁")
     enabled = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
