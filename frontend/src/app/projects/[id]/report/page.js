@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import { Button } from '@/components/ui/Button';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
+import ReportViewer from '@/components/ReportViewer';
 import api from '@/lib/api';
 
 export default function ReportPage() {
@@ -85,10 +86,9 @@ export default function ReportPage() {
         <main className="flex-1 overflow-auto py-8">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="rounded-xl bg-white text-zinc-900 shadow-2xl overflow-hidden">
-              <div
-                className="prose prose-slate max-w-none p-8 sm:p-12"
-                dangerouslySetInnerHTML={{ __html: reportHtml }}
-              />
+              <div className="p-8 sm:p-12">
+                <ReportViewer htmlContent={reportHtml} />
+              </div>
             </div>
           </div>
         </main>
