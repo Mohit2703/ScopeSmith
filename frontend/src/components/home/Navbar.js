@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -18,38 +19,39 @@ export default function Navbar() {
                 <div className="flex items-center justify-between h-20">
                     <div className="flex-shrink-0">
                         <Link href="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--brand-blue)] to-[var(--brand-purple)] flex items-center justify-center text-white font-bold">
-                                S
+                            <div className="w-10 h-10 rounded-full premium-gradient flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                                <div className="w-5 h-5 rounded-full border-[3px] border-white/30" />
                             </div>
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
-                                ScopeSmith
+                            <span className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                Nexora
                             </span>
                         </Link>
                     </div>
 
                     <div className="hidden md:block">
                         <div className="ml-10 flex items-baseline space-x-8">
-                            <Link href="#services" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] dark:hover:text-[var(--brand-blue)] px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            <Link href="#services" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] px-3 py-2 text-sm font-medium transition-colors">
                                 Services
                             </Link>
-                            <Link href="#ai-generator" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] dark:hover:text-[var(--brand-blue)] px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            <Link href="#ai-generator" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] px-3 py-2 text-sm font-medium transition-colors">
                                 AI Generator
                             </Link>
-                            <Link href="#process" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] dark:hover:text-[var(--brand-blue)] px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            <Link href="#process" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] px-3 py-2 text-sm font-medium transition-colors">
                                 Process
                             </Link>
-                            <Link href="#contact" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] dark:hover:text-[var(--brand-blue)] px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                                Contact
+                            <Link href="#about" className="text-slate-600 dark:text-slate-300 hover:text-[var(--brand-blue)] px-3 py-2 text-sm font-medium transition-colors">
+                                About
                             </Link>
                         </div>
                     </div>
 
-                    <div className="hidden md:block">
+                    <div className="hidden md:flex items-center gap-4">
+                        <ThemeToggle />
                         <Link
-                            href="/start"
-                            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            href="/quote"
+                            className="bg-gradient-to-r from-[var(--brand-blue)] to-[var(--brand-purple)] text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-0.5 active:translate-y-0"
                         >
-                            Get Started
+                            Get Quote
                         </Link>
                     </div>
                 </div>

@@ -8,6 +8,7 @@ import WhyChooseUs from '@/components/home/WhyChooseUs';
 import ProcessTimeline from '@/components/home/ProcessTimeline';
 import CTABanner from '@/components/home/CTABanner';
 import Footer from '@/components/home/Footer';
+import ScrollReveal from '@/components/ScrollReveal';
 
 export default function Home() {
   return (
@@ -16,11 +17,21 @@ export default function Home() {
 
       <main>
         <Hero />
-        <ServicesGrid />
-        <AIRequirementGenerator />
-        <WhyChooseUs />
-        <ProcessTimeline />
-        <CTABanner />
+        <ScrollReveal>
+          <ServicesGrid />
+        </ScrollReveal>
+        <ScrollReveal>
+          <AIRequirementGenerator />
+        </ScrollReveal>
+        <ScrollReveal>
+          <WhyChooseUs />
+        </ScrollReveal>
+        <ScrollReveal>
+          <ProcessTimeline />
+        </ScrollReveal>
+        <ScrollReveal>
+          <CTABanner />
+        </ScrollReveal>
       </main>
 
       <Footer />
