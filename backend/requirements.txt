@@ -13,3 +13,5 @@ drf-spectacular
 python-dotenv
 anthropic
 dj_database_url
+whitenoise
+gunicorn
