@@ -1,14 +1,17 @@
 #!/bin/sh
-
-# Wait for database to be ready (optional, but good practice)
-# You might want to use a tool like wait-for-it or netcat here if needed.
-# For now, we assume the DB is ready or Django will retry.
+set -e
 
 echo "Applying database migrations..."
-python manage.py migrate
+python manage.py migrate --noinput
+
+echo "Creating superuser (if needed)..."
+python manage.py createsuperuser \
+  --noinput \
+  --username "$DJANGO_SUPERUSER_USERNAME" \
+  --email "$DJANGO_SUPERUSER_EMAIL" || true
 
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput || true
 
 echo "Starting server..."
-exec python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:8000

@@ -22,13 +22,12 @@ services:
       - ./backend:/app
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - DEBUG=1
       - SECRET_KEY=django-insecure-change-me-in-prod
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/scopesmith
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - db
       - redis
