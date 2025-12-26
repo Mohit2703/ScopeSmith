@@ -1,0 +1,65 @@
+save_csv = true
+username = "mohitmittal2703@gmail.com"
+password = "Mohit@27"
+query = "Workflow Automation"
+search_any = "make.com n8n tines Zapier"
+search_exact = ""
+search_none = ""
+search_title = ""
+category = [ "Web, Mobile & Software Dev",]
+projectDuration = [ "month",]
+fixed = true
+hourly = true
+hourly_min = 10
+hourly_max = 70
+fixed_min = 30
+fixed_max = 100
+hires_min = 1
+hires_max = 10
+limit = 70
+payment_verified = true
+contract_to_hire = false
+previous_clients = false
+fixed_price_catagory_num = [ "3",]
+proposal_min = 0
+proposal_max = 0
+sort = "relevance"
+expertise_level_number = [ "2",]
+workload = [ "full_time",]
+
+[General]
+save_csv = true
+
+[Credentials]
+username = "mohitmittal2703@gmail.com"
+password = "Mohit@27"
+
+[Search]
+query = "Workflow Automation"
+search_any = "make.com n8n tines Zapier"
+search_exact = "python"
+search_none = "survey"
+search_title = "python"
+category = "n"
+contract_to_hire = true
+projectDuration = "['month']"
+fixed = true
+hourly = true
+hourly_min = 10
+hourly_max = 50
+fixed_min = 30
+fixed_max = 100
+hires_min = 1
+hires_max = 10
+limit = 50
+payment_verified = true
+previous_clients = false
+sort = "newest"
+expertise_level_number = "2"
+workload = [ "part_time", "full_time",]
+fixed_price_catagory_num = [ "1",]
+
+[Summarization]
+enable_summarization = false
+openai_api_key = ""
+model = "gpt-3.5-turbo"
