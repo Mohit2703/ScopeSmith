@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
 import api from '@/lib/api';
+import { SpeechToTextButton } from '@/components/SpeechToTextButton';
 
 export default function CreateProjectPage() {
   const [projectTypes, setProjectTypes] = useState([]);
@@ -60,6 +61,13 @@ export default function CreateProjectPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleTranscribed = (transcript) => {
+    setForm(prev => ({
+      ...prev,
+      description: prev.description ? `${prev.description} ${transcript}` : transcript
+    }));
   };
 
   return (
@@ -114,8 +122,8 @@ export default function CreateProjectPage() {
                         <label
                           key={pt.id}
                           className={`relative flex cursor-pointer items-center rounded-lg border-2 p-4 transition-all ${form.project_type_id === String(pt.id)
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:border-primary/50'
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:border-primary/50'
                             }`}
                         >
                           <input
@@ -155,14 +163,21 @@ export default function CreateProjectPage() {
                     </div>
                   </div>
 
-                  <Textarea
-                    name="description"
-                    label="Description (Optional)"
-                    placeholder="Briefly describe your project..."
-                    rows={4}
-                    value={form.description}
-                    onChange={handleChange}
-                  />
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-foreground">
+                        Description (Optional)
+                      </label>
+                      <SpeechToTextButton onTranscribed={handleTranscribed} />
+                    </div>
+                    <Textarea
+                      name="description"
+                      placeholder="Briefly describe your project..."
+                      rows={4}
+                      value={form.description}
+                      onChange={handleChange}
+                    />
+                  </div>
 
                   <div className="flex gap-3 pt-4">
                     <Button

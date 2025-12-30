@@ -164,6 +164,7 @@ CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if os.ge
     "https://scopesmith-backend.onrender.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://192.168.1.6:3000"
 ]
 
 
