@@ -392,6 +392,8 @@ class GetNextQuestionView(APIView):
                 }
             }, status=status.HTTP_200_OK)
         
+        print("AI answered questions: ", ai_answered_question_ids)
+        
         if ai_answered_question_ids.count() != 0:
             return Response({"detail": "All questions have been answered."}, status=status.HTTP_200_OK)
         
@@ -414,6 +416,8 @@ class GetNextQuestionView(APIView):
         }
 
         ai_questions = anthropic_prompt.ask_questions(all_questions, project_info)
+
+        print("Generated AI Questions: ", ai_questions)
 
         if not ai_questions:
             return Response({"detail": "All questions have been answered."}, status=status.HTTP_200_OK)
