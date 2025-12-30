@@ -22,6 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / '.env') 
 CLAUDE_API_ENV = os.getenv("CLAUDE_API_ENV")
+OPENAI_API_ENV = os.getenv("OPENAI_API_ENV")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
