@@ -1,7 +1,7 @@
-from .call_model import call_anthropic_model
-from core.settings import CLAUDE_API_ENV
+from .call_model import call_openai_model
+from core.settings import OPENAI_API_ENV
 class AnthropicPrompt:
-    def __init__(self, api_key: str, model: str = "claude-opus-4-20250514"):
+    def __init__(self, api_key: str, model: str = "gpt-4"):
         self.api_key = api_key
         self.model = model
 
@@ -31,7 +31,7 @@ class AnthropicPrompt:
             
             prompt += f"Asked by: {question['question_asked_by']}\n\n"
 
-        prompt += "Please provide only the list of questions that need to be asked to the client to get the complete project requirements. Do not include any other text."
+        prompt += "Please provide only the list of questions semicolon separated that need to be asked to the client to get the complete project requirements. Do not include any other text."
 
         return prompt
     
@@ -86,7 +86,7 @@ class AnthropicPrompt:
         Returns:
             str: The response from the model.
         """
-        response = call_anthropic_model(
+        response = call_openai_model(
             api_key=self.api_key,
             prompt=prompt,
             model=self.model
@@ -99,7 +99,7 @@ class AnthropicPrompt:
         print("AI question prompt: ", prompt)
         response = self.get_model_response(prompt)
         print("Claude Response: ", response)
-        questions = response.strip().split('\n\n')
+        questions = response.strip().split(';')
         print("Questions: ", questions)
         return questions
     
@@ -110,9 +110,4 @@ class AnthropicPrompt:
         print("response: ", response)
         return response
 
-anthropic_prompt = AnthropicPrompt(api_key=CLAUDE_API_ENV)
-
-if __name__ == "__main__":
-    questions = [{'id': 1, 'question_text': 'What products or services will you sell, and do they have variations?', 'answer_text': 'We sell lifestyle products including T-shirts, hoodies, accessories, and home décor items. Most products have variations such as size (S–XL), color options, and different designs. All products are physical goods.', 'question_asked_by': 'predefined'}, {'id': 2, 'question_text': 'What core features do you expect in the website?', 'answer_text': 'We want a standard e-commerce setup with product listing, product detail pages, shopping cart, checkout, and user accounts. \nAdditional features we want:\n* Search with filters\n* Wishlist\n* Coupons/discounts\n* Reviews & ratings\n* Order tracking\n* Inventory auto-update\n* Basic analytics for sales', 'question_asked_by': 'predefined'}, {'id': 3, 'question_text': 'What payment and shipping methods do you want to integrate?', 'answer_text': 'For payments, we want UPI, credit/debit card, net banking, and wallet options, preferably using Razorpay. For shipping, we want integration with logistics providers like Shiprocket or Delhivery. We also want different shipping rates based on location and weight.', 'question_asked_by': 'predefined'}, {'id': 4, 'question_text': 'Do you have design preferences or reference websites?', 'answer_text': 'We prefer a clean, modern design with minimal colors, similar to websites like Nike or H&M. The layout should be mobile-friendly, fast to load, and visually appealing. We will provide our brand colors and logo.', 'question_asked_by': 'predefined'}, {'id': 5, 'question_text': 'How do you want to manage inventory, orders, and notifications?', 'answer_text': 'We need an admin dashboard to manage products, stock, and orders. Stock should update automatically when orders are placed.\nNotifications needed:\n* Order confirmation email/SMS\n* Shipping update\n* Delivery confirmation\n* Low-inventory alerts for admin', 'question_asked_by': 'predefined'}]
-    ai_question = anthropic_prompt.ask_questions(questions)  
-    print(ai_question)
+anthropic_prompt = AnthropicPrompt(api_key=OPENAI_API_ENV)
