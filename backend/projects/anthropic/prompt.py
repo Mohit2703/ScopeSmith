@@ -76,12 +76,13 @@ class AnthropicPrompt:
             prompt += f"Asked by: {question['question_asked_by']}\n\n"
         return prompt
     
-    def get_model_response(self, prompt: str) -> str:
+    def get_model_response(self, prompt: str, image_url: str = None) -> str:
         """
         Calls the Anthropic model with the constructed prompt and returns the response.
 
         Args:
             prompt (str): The input prompt to send to the model.
+            image_url (str, optional): Base64 encoded image.
 
         Returns:
             str: The response from the model.
@@ -89,23 +90,42 @@ class AnthropicPrompt:
         response = call_openai_model(
             api_key=self.api_key,
             prompt=prompt,
-            model=self.model
+            model=self.model,
+            image_url=image_url
         )
         return response
     
-    def ask_questions(self, all_questions: list, project_info) -> str:
+    def ask_questions(self, all_questions: list, project_info, file_context=None) -> str:
         print("All questions: ", all_questions)
         prompt = self.get_question_prompt(all_questions, project_info)
+        
+        image_url = None
+        if file_context:
+            if file_context['type'] == 'text':
+                prompt += f"\n\nAdditionally, the user has uploaded a file with the following content:\n{file_context['content']}\n\nPlease use this information to ask more specific questions."
+            elif file_context['type'] == 'image':
+                prompt += "\n\nAdditionally, the user has uploaded an image. Please analyze the image content to ask more specific questions."
+                image_url = file_context['content']
+
         print("AI question prompt: ", prompt)
-        response = self.get_model_response(prompt)
+        response = self.get_model_response(prompt, image_url=image_url)
         print("Claude Response: ", response)
         questions = response.strip().split(';')
         print("Questions: ", questions)
         return questions
     
-    def generate_requirements(self, all_questions: list, project_info) -> str:
+    def generate_requirements(self, all_questions: list, project_info, file_context=None) -> str:
         prompt = self.get_generating_requirement_prompt(all_questions, project_info)
-        response = self.get_model_response(prompt)
+        
+        image_url = None
+        if file_context:
+            if file_context['type'] == 'text':
+                prompt += f"\n\nAdditionally, the user has uploaded a file with the following content:\n{file_context['content']}\n\nPlease incorporate this information into the requirements."
+            elif file_context['type'] == 'image':
+                prompt += "\n\nAdditionally, the user has uploaded an image. Please analyze the image content and incorporate it into the requirements."
+                image_url = file_context['content']
+
+        response = self.get_model_response(prompt, image_url=image_url)
 
         print("response: ", response)
         return response
