@@ -7,12 +7,18 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Select } from '@/components/ui/Select';
 
 export default function SignupPage() {
   const { signup } = useAuth();
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
+    mobile_number: '',
+    country: '',
+    company_name: '',
+    role: 'client',
+    linkedin_username: '',
     password: '',
     confirmPassword: ''
   });
@@ -35,7 +41,8 @@ export default function SignupPage() {
 
     setIsLoading(true);
 
-    const result = await signup(formData.username, formData.email, formData.password);
+    const { confirmPassword, ...signupPayload } = formData;
+    const result = await signup(signupPayload);
 
     if (!result.success) {
       setError(result.error);
@@ -49,7 +56,7 @@ export default function SignupPage() {
       title="Create an account"
       description="Get started with ScopeSmith today"
     >
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -57,13 +64,13 @@ export default function SignupPage() {
         )}
 
         <Input
-          label="Username"
-          id="username"
-          name="username"
+          label="Full Name"
+          id="name"
+          name="name"
           type="text"
-          autoComplete="username"
+          autoComplete="name"
           required
-          value={formData.username}
+          value={formData.name}
           onChange={handleChange}
         />
 
@@ -78,29 +85,81 @@ export default function SignupPage() {
           onChange={handleChange}
         />
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Mobile Number"
+            id="mobile_number"
+            name="mobile_number"
+            type="tel"
+            value={formData.mobile_number}
+            onChange={handleChange}
+          />
+          <Input
+            label="Country"
+            id="country"
+            name="country"
+            type="text"
+            value={formData.country}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Company Name"
+            id="company_name"
+            name="company_name"
+            type="text"
+            value={formData.company_name}
+            onChange={handleChange}
+          />
+          <Select
+            label="Role"
+            id="role"
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            options={[
+              { value: 'client', label: 'Client' },
+              { value: 'admin', label: 'Admin' },
+            ]}
+          />
+        </div>
+
         <Input
-          label="Password"
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          value={formData.password}
+          label="LinkedIn Username"
+          id="linkedin_username"
+          name="linkedin_username"
+          type="text"
+          value={formData.linkedin_username}
           onChange={handleChange}
         />
 
-        <Input
-          label="Confirm Password"
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          required
-          value={formData.confirmPassword}
-          onChange={handleChange}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Password"
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={formData.password}
+            onChange={handleChange}
+          />
 
-        <div>
+          <Input
+            label="Confirm Password"
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={formData.confirmPassword}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="pt-2">
           <Button
             type="submit"
             className="w-full"
