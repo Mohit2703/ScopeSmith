@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/Alert';
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,7 +24,7 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
-    const result = await login(formData.username, formData.password);
+    const result = await login(formData.email, formData.password);
 
     if (!result.success) {
       setError(result.error);
@@ -46,13 +46,13 @@ export default function LoginPage() {
         )}
 
         <Input
-          label="Username"
-          id="username"
-          name="username"
-          type="text"
-          autoComplete="username"
+          label="Email address"
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
           required
-          value={formData.username}
+          value={formData.email}
           onChange={handleChange}
         />
 

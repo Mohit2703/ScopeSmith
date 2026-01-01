@@ -16,6 +16,27 @@ export function AuthProvider({ children }) {
     checkUser();
   }, []);
 
+  const formatError = (error) => {
+    if (error.data) {
+      if (typeof error.data === 'string') return error.data;
+      if (error.data.detail) return error.data.detail;
+      if (error.data.message) return error.data.message;
+      if (error.data.non_field_errors) return error.data.non_field_errors.join(', ');
+
+      // DRF field errors
+      const fields = Object.keys(error.data);
+      if (fields.length > 0) {
+        return fields.map(field => {
+          const messages = Array.isArray(error.data[field]) ? error.data[field].join(', ') : error.data[field];
+          // Capitalize field name and replace underscores with spaces
+          const label = field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, ' ');
+          return `${label}: ${messages}`;
+        }).join(' | ');
+      }
+    }
+    return error.message || 'Something went wrong';
+  };
+
   const checkUser = async () => {
     const token = localStorage.getItem('auth_token');
     if (token) {
@@ -34,9 +55,9 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      const data = await api.post('/auth/login/', { username, password });
+      const data = await api.post('/auth/login/', { email, password });
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
         await checkUser();
@@ -44,13 +65,13 @@ export function AuthProvider({ children }) {
         return { success: true };
       }
     } catch (error) {
-      return { success: false, error: error.detail || 'Login failed' };
+      return { success: false, error: formatError(error) };
     }
   };
 
-  const signup = async (username, email, password) => {
+  const signup = async (signupData) => {
     try {
-      const data = await api.post('/auth/signup/', { username, email, password });
+      const data = await api.post('/auth/signup/', signupData);
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
         await checkUser();
@@ -58,7 +79,7 @@ export function AuthProvider({ children }) {
         return { success: true };
       }
     } catch (error) {
-      return { success: false, error: error.detail || 'Signup failed' };
+      return { success: false, error: formatError(error) };
     }
   };
 
