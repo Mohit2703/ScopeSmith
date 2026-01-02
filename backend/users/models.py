@@ -5,11 +5,16 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     ROLE_CHOICES = [
-        ('admin', 'admin'),
-        ('client', 'client')
+        ('admin', 'Admin'),
+        ('CEO', 'CEO'),
+        ('CTO', 'CTO'),
+        ('Developer', 'Developer'),
+        ('Project Manager', 'Project Manager'),
+        ('Other', 'Other'),
+        ('client', 'Client'),
     ]
     name = models.CharField(max_length=150)
-    role = models.CharField(max_length=50, default="admin", choices=ROLE_CHOICES)
+    role = models.CharField(max_length=50, default="Other", choices=ROLE_CHOICES)
     mobile_number = models.CharField(max_length=20, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     company_name = models.CharField(max_length=200, blank=True, null=True)

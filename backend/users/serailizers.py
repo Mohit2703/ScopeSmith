@@ -18,7 +18,14 @@ class SignupSerializer(serializers.Serializer):
     country = serializers.CharField(max_length=100, required=False, allow_blank=True)
     company_name = serializers.CharField(max_length=200, required=False, allow_blank=True)
     linkedin_username = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    role = serializers.ChoiceField(choices=User.ROLE_CHOICES, default='client')
+    COMPANY_ROLES = [
+        ('CEO', 'CEO'),
+        ('CTO', 'CTO'),
+        ('Developer', 'Developer'),
+        ('Project Manager', 'Project Manager'),
+        ('Other', 'Other')
+    ]
+    role = serializers.ChoiceField(choices=COMPANY_ROLES, default='Other')
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -47,7 +54,7 @@ class SignupSerializer(serializers.Serializer):
             country=validated_data.get("country", ""),
             company_name=validated_data.get("company_name", ""),
             linkedin_username=validated_data.get("linkedin_username", ""),
-            role=validated_data.get("role", "client"),
+            role=validated_data.get("role", "Other"),
         )
         user.set_password(validated_data["password"])
         user.save()

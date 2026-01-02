@@ -20,7 +20,7 @@ export default function SignupPage() {
     mobile_number: '',
     country: '',
     company_name: '',
-    role: 'client',
+    role: 'Other',
     linkedin_username: '',
     password: '',
     confirmPassword: ''
@@ -220,8 +220,11 @@ export default function SignupPage() {
               value={formData.role}
               onChange={handleChange}
               options={[
-                { value: 'client', label: 'Client' },
-                { value: 'admin', label: 'Admin' },
+                { value: 'CEO', label: 'CEO' },
+                { value: 'CTO', label: 'CTO' },
+                { value: 'Developer', label: 'Developer' },
+                { value: 'Project Manager', label: 'Project Manager' },
+                { value: 'Other', label: 'Other' },
               ]}
             />
           </div>
