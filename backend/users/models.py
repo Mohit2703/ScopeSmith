@@ -19,4 +19,19 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class PendingRegistration(models.Model):
+    """Temporary storage for signup data with OTP verification pending."""
+    email = models.EmailField(unique=True)
+    otp = models.CharField(max_length=6)
+    signup_data = models.JSONField()  # Stores all signup fields (name, password, etc.)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    
+    class Meta:
+        indexes = [models.Index(fields=['email', 'otp'])]
+    
+    def __str__(self):
+        return f"Pending: {self.email}"
+
+
 

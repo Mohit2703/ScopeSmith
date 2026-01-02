@@ -83,6 +83,14 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Login with token directly (used after OTP verification)
+  const loginWithToken = async (token, userData) => {
+    localStorage.setItem('auth_token', token);
+    setUser(userData);
+    router.push('/dashboard');
+    return { success: true };
+  };
+
   const logout = () => {
     localStorage.removeItem('auth_token');
     setUser(null);
@@ -90,7 +98,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, loginWithToken, signup, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
