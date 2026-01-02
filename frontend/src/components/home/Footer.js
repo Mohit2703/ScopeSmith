@@ -8,12 +8,7 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="col-span-2 md:col-span-4">
                         <Link href="/" className="flex items-center gap-2 mb-8">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--brand-blue)] via-[var(--brand-purple)] to-[var(--brand-teal)] flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                <div className="w-5 h-5 rounded-full border-[3px] border-white/30" />
-                            </div>
-                            <span className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                                Nexora
-                            </span>
+                            <img src="/pranix_logo.png" alt="Pranix logo" className="w-40 h-40 object-contain" />
                         </Link>
                         <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-8 max-w-sm">
                             Building powerful digital solutions that transform businesses and drive growth.
