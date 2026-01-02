@@ -95,14 +95,14 @@ export default function ServicesGrid() {
                                 {service.description}
                             </p>
 
-                            <div className="mt-auto">
+                            {/* <div className="mt-auto">
                                 <button className="text-[var(--brand-blue)] font-bold flex items-center gap-2 group/btn text-lg">
                                     Learn more
                                     <svg className="w-5 h-5 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                     </svg>
                                 </button>
-                            </div>
+                            </div> */}
                         </div>
                     ))}
                 </div>

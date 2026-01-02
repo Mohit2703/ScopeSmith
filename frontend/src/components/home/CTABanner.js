@@ -27,7 +27,8 @@ export default function CTABanner() {
                                 href="/dashboard"
                                 className="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-slate-900 transition-all duration-300 bg-white rounded-2xl hover:bg-slate-50 hover:shadow-2xl transform hover:-translate-y-1 active:translate-y-0"
                             >
-                                Get Your Free Quote
+                                <span className="mr-2">✨</span>
+                                Generate Requirements with AI
                                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                 </svg>
