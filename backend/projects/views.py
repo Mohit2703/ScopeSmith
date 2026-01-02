@@ -76,17 +76,24 @@ class ProjectView(APIView):
     def post(self, request):
         user = request.user
 
-        name, description, project_type_id = request.data.get("name"), request.data.get("description", ""), request.data.get("project_type_id")
+        name, description, project_type_id, industry_type = request.data.get("name"), request.data.get("description", ""), request.data.get("project_type_id"), request.data.get("industry_type", "other")
 
         if not name or not project_type_id:
             return Response({"detail": "Name, description, and project type ID are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        project_type = ProjectType.objects.get(id = project_type_id)
-
-        if not project_type:
+        try:
+            project_type = ProjectType.objects.get(id = project_type_id)
+        except ProjectType.DoesNotExist:
             return Response({"detail": "Project type is not present"}, status=status.HTTP_400_BAD_REQUEST)
 
-        project = Project.objects.create(name = name, description = description, project_type = project_type, user = user, file = request.FILES.get('file'))
+        project = Project.objects.create(
+            name = name, 
+            description = description, 
+            project_type = project_type, 
+            industry_type = industry_type,
+            user = user, 
+            file = request.FILES.get('file')
+        )
         serializer = ProjectSerializer(project)
         return Response({
             "detail": "Project Created successfully",
@@ -137,7 +144,7 @@ class GetOneProjectView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if user.role != 'admin' or user != project.user:
+        if user.role != 'admin' and user != project.user:
             return Response({"detail": "User is not authorized to view this project."}, status=status.HTTP_400_BAD_REQUEST)
         project_data = ProjectSerializer(project).data
         return Response({
@@ -157,7 +164,7 @@ class RemoveProjectView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user["role"] != "admin" or user != project.user:
+        if user.role != "admin" and user != project.user:
             return Response({"detail": "User is not able to delete project"}, status=status.HTTP_400_BAD_REQUEST)
         
         project.enabled = False
@@ -290,7 +297,7 @@ class AnswerView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if user["role"] != "admin" or user != project.user:
+        if user.role != "admin" and user != project.user:
             return Response({"detail": "User is not authorized to view answers for this project."}, status=status.HTTP_400_BAD_REQUEST)
         
         answers = Answer.objects.filter(project = project)
@@ -308,7 +315,7 @@ class AnswerView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if user.role != "admin" or user != project.user:
+        if user.role != "admin" and user != project.user:
             return Response({"detail": "User is not authorized to view answers for this project."}, status=status.HTTP_400_BAD_REQUEST)
         
         answers = Answer.objects.filter(project = project)
@@ -334,7 +341,7 @@ class RemoveAnswerView(APIView):
         
         project = answer.project
 
-        if user.role != "admin" or user != project.user:
+        if user.role != "admin" and user != project.user:
             return Response({"detail": "User is not authorized to remove this answer."}, status=status.HTTP_400_BAD_REQUEST)
         
         answer.delete()
@@ -356,7 +363,7 @@ class GetNextQuestionView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if user.role != "admin" or user != project.user:
+        if user.role != "admin" and user != project.user:
             return Response({"detail": "User is not authorized to view questions for this project."}, status=status.HTTP_400_BAD_REQUEST)
         
         answered_question_ids = Answer.objects.filter(project=project).values_list('question_id', flat=True)
@@ -462,6 +469,9 @@ class AnswerQuestionView(APIView):
         if not project:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
 
+        if user.role != "admin" and user != project.user:
+            return Response({"detail": "User is not authorized to answer questions for this project."}, status=status.HTTP_403_FORBIDDEN)
+
         next_question = None
         answer = None
         answer_data = None
@@ -559,6 +569,9 @@ class GenerateReportView(APIView):
             project = Project.objects.get(id=project_id)
         except Project.DoesNotExist:
             return Response({"detail": "Project is not present"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.role != "admin" and user != project.user:
+            return Response({"detail": "User is not authorized to generate report for this project."}, status=status.HTTP_403_FORBIDDEN)
 
         print("project: ", project)
         project_report = Project_Report.objects.filter(project=project).first()

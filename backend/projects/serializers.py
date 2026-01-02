@@ -9,7 +9,7 @@ class ProjectTypeSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ["id", "name", "description", "user", "project_type", "status", "enabled", "file", "created_at", "updated_at"]
+        fields = ["id", "name", "description", "user", "project_type", "industry_type", "status", "enabled", "file", "created_at", "updated_at"]
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:

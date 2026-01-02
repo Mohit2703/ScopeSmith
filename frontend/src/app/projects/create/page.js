@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Select } from '@/components/ui/Select';
 import api from '@/lib/api';
 import { SpeechToTextButton } from '@/components/SpeechToTextButton';
 
@@ -18,6 +19,7 @@ export default function CreateProjectPage() {
   const [form, setForm] = useState({
     name: '',
     project_type_id: '',
+    industry_type: '',
     description: '',
     file: null
   });
@@ -58,6 +60,7 @@ export default function CreateProjectPage() {
       const formData = new FormData();
       formData.append('name', form.name);
       formData.append('project_type_id', parseInt(form.project_type_id));
+      formData.append('industry_type', form.industry_type);
       formData.append('description', form.description);
       if (form.file) {
         formData.append('file', form.file);
@@ -123,55 +126,44 @@ export default function CreateProjectPage() {
                     required
                   />
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-foreground">
-                      Project Type
-                    </label>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {projectTypes.map((pt) => (
-                        <label
-                          key={pt.id}
-                          className={`relative flex cursor-pointer items-center rounded-lg border-2 p-4 transition-all ${form.project_type_id === String(pt.id)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/50'
-                            }`}
-                        >
-                          <input
-                            type="radio"
-                            name="project_type_id"
-                            value={pt.id}
-                            checked={form.project_type_id === String(pt.id)}
-                            onChange={handleChange}
-                            className="sr-only"
-                            required
-                          />
-                          <div className="flex-1">
-                            <span className="block font-semibold text-foreground">
-                              {pt.name}
-                            </span>
-                            {pt.description && (
-                              <span className="mt-1 block text-sm text-muted-foreground">
-                                {pt.description}
-                              </span>
-                            )}
-                          </div>
-                          {form.project_type_id === String(pt.id) && (
-                            <svg
-                              className="h-5 w-5 text-primary"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                        </label>
-                      ))}
+                  <Select
+                    name="project_type_id"
+                    label="Project Type"
+                    value={form.project_type_id}
+                    onChange={handleChange}
+                    required
+                    options={[
+                      { value: '', label: 'Select a project type' },
+                      ...projectTypes.map((pt) => ({
+                        value: String(pt.id),
+                        label: pt.name,
+                      })),
+                    ]}
+                  />
+
+                  <Select
+                    name="industry_type"
+                    label="Industry Type"
+                    value={form.industry_type}
+                    onChange={handleChange}
+                    required
+                    options={[
+                      { value: '', label: 'Select an industry' },
+                      { value: 'ecommerce', label: 'E-commerce' },
+                      { value: 'fintech', label: 'Fintech' },
+                      { value: 'healthcare', label: 'Healthcare' },
+                      { value: 'edtech', label: 'EdTech' },
+                      { value: 'real_estate', label: 'Real Estate' },
+                      { value: 'logistics', label: 'Logistics' },
+                      { value: 'other', label: 'Other' },
+                    ]}
+                  />
+
+                  {form.project_type_id && (
+                    <div className="mt-2 rounded-md bg-muted/30 p-3 text-sm text-muted-foreground italic">
+                      {projectTypes.find(pt => String(pt.id) === form.project_type_id)?.description}
                     </div>
-                  </div>
+                  )}
 
                   <div>
                     <div className="flex items-center justify-between mb-2">

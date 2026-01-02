@@ -24,10 +24,20 @@ class Project(models.Model):
         ('converted', 'converted'),
         ('trash', 'trash')
     ]
+    INDUSTRY_CHOICES = [
+        ('ecommerce', 'E-commerce'),
+        ('fintech', 'Fintech'),
+        ('healthcare', 'Healthcare'),
+        ('edtech', 'EdTech'),
+        ('real_estate', 'Real Estate'),
+        ('logistics', 'Logistics'),
+        ('other', 'Other'),
+    ]
     name = models.CharField(max_length=250)
     description = models.TextField(blank=True, default="")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project_type = models.ForeignKey(ProjectType, on_delete=models.CASCADE)
+    industry_type = models.CharField(max_length=50, choices=INDUSTRY_CHOICES, default='other')
     status = models.CharField(max_length=50, default="proposed", choices=STATUS_CHOICES)
     enabled = models.BooleanField(default=True)
     file = models.FileField(upload_to='projects/', null=True, blank=True)
