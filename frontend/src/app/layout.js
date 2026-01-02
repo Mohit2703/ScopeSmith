@@ -2,6 +2,13 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import './globals.css';
 
+export const metadata = {
+  title: 'Pranix',
+  icons: {
+    icon: '/pranix.png',
+  },
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
