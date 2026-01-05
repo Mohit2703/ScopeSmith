@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/ui/Logo';
+import ThemeToggle from '@/components/home/ThemeToggle';
 
 export function AppLayout({ children }) {
     const { user, logout } = useAuth();
@@ -37,6 +38,7 @@ export function AppLayout({ children }) {
                         </div>
                         <div className="hidden sm:ml-6 sm:flex sm:items-center">
                             <div className="relative ml-3 flex items-center gap-4">
+                                <ThemeToggle />
                                 <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                                     {user?.username || user?.email}
                                 </span>
@@ -45,7 +47,8 @@ export function AppLayout({ children }) {
                                 </Button>
                             </div>
                         </div>
-                        <div className="-mr-2 flex items-center sm:hidden">
+                        <div className="-mr-2 flex items-center sm:hidden gap-2">
+                            <ThemeToggle />
                             <Button
                                 variant="ghost"
                                 size="icon"

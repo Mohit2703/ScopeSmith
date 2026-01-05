@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import ThemeToggle from '@/components/home/ThemeToggle';
 
 export function AdminHeader({ onMenuToggle }) {
     const { user, logout } = useAuth();
@@ -36,8 +37,9 @@ export function AdminHeader({ onMenuToggle }) {
                 </div>
             </div>
 
-            {/* Right: Notifications + User Menu */}
+            {/* Right: Notifications + Theme Toggle + User Menu */}
             <div className="flex items-center gap-3">
+                <ThemeToggle />
                 {/* Notifications */}
                 <button className="relative p-2 hover:bg-muted rounded-lg transition-colors">
                     <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
