@@ -368,6 +368,14 @@ class GetNextQuestionView(APIView):
         
         answered_question_ids = Answer.objects.filter(project=project).values_list('question_id', flat=True)
         
+        predefined_total = Question.objects.filter(project_type=project.project_type, enabled=True).count()
+        ai_total = AI_Question.objects.filter(project=project).count()
+        total_questions = predefined_total + ai_total
+        
+        answered_predefined = Answer.objects.filter(project=project).count()
+        answered_ai = AI_Answer.objects.filter(ai_question__project=project).count()
+        current_question_index = answered_predefined + answered_ai + 1
+
         next_question = Question.objects.filter(
             project_type=project.project_type,
             enabled=True
@@ -379,7 +387,9 @@ class GetNextQuestionView(APIView):
                 "detail": "Next question retrieved successfully",
                 "data": {
                     **serializer.data,
-                    "question_type": "predefined"
+                    "question_type": "predefined",
+                    "total_questions": total_questions,
+                    "current_question_index": current_question_index
                 }
             }, status=status.HTTP_200_OK)
         
@@ -396,7 +406,9 @@ class GetNextQuestionView(APIView):
                 "detail": "Next AI question retrieved successfully",
                 "data": {
                     **serializer.data,
-                    "question_type": "ai"
+                    "question_type": "ai",
+                    "total_questions": total_questions,
+                    "current_question_index": current_question_index
                 }
             }, status=status.HTTP_200_OK)
         
@@ -445,13 +457,18 @@ class GetNextQuestionView(APIView):
                 previous_ai_question.save()
             previous_ai_question = ai_question
         
+        ai_total = AI_Question.objects.filter(project=project).count()
+        total_questions = predefined_total + ai_total
+        
         ai_ques = AI_Question.objects.filter(project=project).order_by("question_no").first()
         serializer = AI_QuestionSerializer(ai_ques)
         return Response({
             "detail": "Next AI question generated successfully",
             "data": {
             **serializer.data,
-            "question_type": "ai"
+            "question_type": "ai",
+            "total_questions": total_questions,
+            "current_question_index": current_question_index
         }}, status=status.HTTP_200_OK)
 
 
@@ -551,10 +568,22 @@ class AnswerQuestionView(APIView):
                     "question_type": "ai"
                 }
 
+        predefined_total = Question.objects.filter(project_type=project.project_type, enabled=True).count()
+        ai_total = AI_Question.objects.filter(project=project).count()
+        total_questions = predefined_total + ai_total
+        
+        answered_predefined = Answer.objects.filter(project=project).count()
+        answered_ai = AI_Answer.objects.filter(ai_question__project=project).count()
+        current_question_index = answered_predefined + answered_ai + (1 if next_question else 0)
+
         return Response({
             "detail": "Answer Created successfully",
             "data": answer_data,
-            "next_question": next_question
+            "next_question": next_question,
+            "progress": {
+                "total_questions": total_questions,
+                "current_question_index": current_question_index
+            } if next_question else None
         }, status = status.HTTP_201_CREATED)
 
 

@@ -20,6 +20,7 @@ export default function QuestionPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     if (params.id) {
@@ -37,6 +38,12 @@ export default function QuestionPage() {
       if (response.data) {
         setQuestion(response.data);
         setAnswer('');
+        if (response.data.total_questions) {
+          setProgress({
+            current: response.data.current_question_index,
+            total: response.data.total_questions
+          });
+        }
       } else {
         // All questions answered
         setQuestion(null);
@@ -76,6 +83,12 @@ export default function QuestionPage() {
         if (response.next_question) {
           setQuestion(response.next_question);
           setAnswer('');
+          if (response.progress) {
+            setProgress({
+              current: response.progress.current_question_index,
+              total: response.progress.total_questions
+            });
+          }
         } else {
           // No more questions
           setQuestion(null);
@@ -144,15 +157,24 @@ export default function QuestionPage() {
             </Alert>
           )}
 
-          <Card>
+          <Card className="overflow-hidden">
+            {/* Progress Bar */}
+            {progress.total > 0 && (
+              <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800">
+                <div
+                  className="h-full bg-[var(--brand-blue)] transition-all duration-500 ease-out"
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                />
+              </div>
+            )}
             <CardHeader>
               <div className="flex items-center justify-between">
                 <Badge variant={question.question_type === 'ai' ? 'secondary' : 'default'}>
                   {question.question_type === 'ai' ? 'AI Generated' : 'Standard'}
                 </Badge>
-                {question.next_question && (
-                  <span className="text-sm text-muted-foreground">
-                    More questions ahead
+                {progress.total > 0 && (
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Question {progress.current} of {progress.total}
                   </span>
                 )}
               </div>
